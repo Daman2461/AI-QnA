@@ -1,7 +1,7 @@
 # AI Document Q&A System
 
 A modern FastAPI-based backend and responsive frontend for uploading documents, processing them with AI embeddings, and asking questions about their content.
-
+This project is an AI-powered Document Q&A System using FastAPI, SQLAlchemy, HuggingFace embeddings, FAISS, and LangChain with Mistral LLM. It enables users to upload documents and get intelligent, context-aware answers, showcasing advanced backend design and modern NLP integration.
 ---
 
 ## Features
