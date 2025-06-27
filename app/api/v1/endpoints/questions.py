@@ -12,7 +12,6 @@ from app.schemas.schemas import (
     ResponseBase,
 )
 from app.services.qa_service import QAService
-from app.services.rl_service import RLService
 
 router = APIRouter()
 
@@ -46,47 +45,27 @@ def create_question(
         question_text=question_in.question_text,
         document_id=question_in.document_id,
         user_id=current_user.id,
-        metadata=question_in.metadata
+        metadata=question_in.metadata if hasattr(question_in, "metadata") else None
     )
     db.add(question)
     db.commit()
     db.refresh(question)
 
     # Get answer using QA service
-    try:
-        qa_service = QAService(db)
-        rl_service = RLService(db)
-        
-        # Get initial answer
-        answer = qa_service.answer_question(
-            document_id=question.document_id,
-            question=question.question_text
-        )
-        
-        # Optimize answer using RL
-        optimized_answer = rl_service.optimize_response(question, answer)
-        
-        # Update question with answer
-        question.answer_text = optimized_answer["answer"]
-        question.confidence_score = optimized_answer["confidence_score"]
-        question.metadata = {
-            **(question.metadata or {}),
-            "sources": optimized_answer["sources"]
-        }
-        
-        db.add(question)
-        db.commit()
-        db.refresh(question)
-        
-        return question
-
-    except Exception as e:
-        db.delete(question)
-        db.commit()
-        raise HTTPException(
-            status_code=400,
-            detail=str(e)
-        )
+    qa_service = QAService(db, document_id=question.document_id)
+    answer = qa_service.answer_question(
+        question=question.question_text
+    )
+    question.answer_text = answer["answer"]
+    question.confidence_score = answer["confidence_score"]
+    question.metadata = {
+        **(question.metadata or {}),
+        "sources": answer["sources"]
+    }
+    db.add(question)
+    db.commit()
+    db.refresh(question)
+    return question
 
 
 @router.get("/", response_model=List[QuestionSchema])
@@ -124,49 +103,6 @@ def read_question(
             status_code=404,
             detail="Question not found"
         )
-    return question
-
-
-@router.put("/{question_id}/feedback", response_model=QuestionSchema)
-def update_question_feedback(
-    *,
-    db: Session = Depends(deps.get_db),
-    question_id: int,
-    feedback_score: int,
-    current_user: User = Depends(deps.get_current_active_user),
-) -> Any:
-    """
-    Update question feedback score.
-    """
-    question = db.query(Question).filter(
-        Question.id == question_id,
-        Question.user_id == current_user.id
-    ).first()
-    if not question:
-        raise HTTPException(
-            status_code=404,
-            detail="Question not found"
-        )
-    
-    if not 0 <= feedback_score <= 100:
-        raise HTTPException(
-            status_code=400,
-            detail="Feedback score must be between 0 and 100"
-        )
-    
-    question.feedback_score = feedback_score
-    db.add(question)
-    db.commit()
-    db.refresh(question)
-    
-    # Update RL model with feedback
-    try:
-        rl_service = RLService(db)
-        rl_service.train_on_historical_data()
-    except Exception as e:
-        # Log error but don't fail the request
-        print(f"Error updating RL model: {str(e)}")
-    
     return question
 
 

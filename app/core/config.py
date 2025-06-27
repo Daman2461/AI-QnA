@@ -1,8 +1,9 @@
 from typing import List, Optional
 from pydantic_settings import BaseSettings
-from pydantic import AnyHttpUrl, validator
+from pydantic import AnyHttpUrl, field_validator
 import secrets
 from functools import lru_cache
+import os
 
 
 class Settings(BaseSettings):
@@ -13,7 +14,8 @@ class Settings(BaseSettings):
     # BACKEND_CORS_ORIGINS is a JSON-formatted list of origins
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
 
-    @validator("BACKEND_CORS_ORIGINS", pre=True)
+    @field_validator("BACKEND_CORS_ORIGINS", mode="before")
+    @classmethod
     def assemble_cors_origins(cls, v: str | List[str]) -> List[str] | str:
         if isinstance(v, str) and not v.startswith("["):
             return [i.strip() for i in v.split(",")]
@@ -24,37 +26,16 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "AI Document Q&A System"
     
     # Database
-    POSTGRES_SERVER: str
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_DB: str
-    DATABASE_URL: Optional[str] = None
-
-    @validator("DATABASE_URL", pre=True)
-    def assemble_db_connection(cls, v: Optional[str], values: dict[str, any]) -> any:
-        if isinstance(v, str):
-            return v
-        return f"postgresql://{values.get('POSTGRES_USER')}:{values.get('POSTGRES_PASSWORD')}@{values.get('POSTGRES_SERVER')}/{values.get('POSTGRES_DB')}"
-
-    # Redis
-    REDIS_HOST: str
-    REDIS_PORT: int
-    REDIS_DB: int
-    REDIS_URL: Optional[str] = None
-
-    @validator("REDIS_URL", pre=True)
-    def assemble_redis_connection(cls, v: Optional[str], values: dict[str, any]) -> any:
-        if isinstance(v, str):
-            return v
-        return f"redis://{values.get('REDIS_HOST')}:{values.get('REDIS_PORT')}/{values.get('REDIS_DB')}"
+    DATABASE_URL: str = "sqlite:///./app.db"
 
     # Mistral (replacing OpenAI)
-    MISTRAL_API_KEY: str
+    MISTRAL_API_KEY: str = ""
     MISTRAL_MODEL_NAME: str = "mistral-tiny"
 
-    # Celery
-    CELERY_BROKER_URL: str
-    CELERY_RESULT_BACKEND: str
+    # Pinecone
+    PINECONE_API_KEY: str
+    PINECONE_ENV: str
+    PINECONE_INDEX_NAME: str
 
     # File Upload
     MAX_UPLOAD_SIZE: int = 10 * 1024 * 1024  # 10MB

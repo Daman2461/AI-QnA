@@ -56,13 +56,4 @@ class OpenAIError(CustomException):
         message: str = "Error communicating with OpenAI",
         detail: Optional[Any] = None,
     ):
-        super().__init__(message=message, code=500, detail=detail)
-
-
-class RLModelError(CustomException):
-    def __init__(
-        self,
-        message: str = "Error in reinforcement learning model",
-        detail: Optional[Any] = None,
-    ):
         super().__init__(message=message, code=500, detail=detail) 

@@ -1,12 +1,12 @@
 from datetime import datetime
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, EmailStr, Field, validator
+from pydantic import BaseModel, Field, validator
 from uuid import UUID
 
 
 # User schemas
 class UserBase(BaseModel):
-    email: EmailStr
+    email: str
     full_name: Optional[str] = None
     is_active: Optional[bool] = True
 
@@ -38,10 +38,11 @@ class UserInDB(UserInDBBase):
 
 
 # Document schemas
+
 class DocumentBase(BaseModel):
     title: str
     file_type: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    meta_data: Optional[Dict[str, Any]] = None
 
 
 class DocumentCreate(DocumentBase):
@@ -99,18 +100,19 @@ class DocumentEmbedding(DocumentEmbeddingBase):
 class QuestionBase(BaseModel):
     question_text: str
     document_id: int
-    metadata: Optional[Dict[str, Any]] = None
+    meta_data: Optional[Dict[str, Any]] = None
 
 
 class QuestionCreate(QuestionBase):
-    pass
+    question_text: str
+    document_id: int
+    metadata: Optional[Dict[str, Any]] = None
 
 
 class QuestionUpdate(BaseModel):
     answer_text: Optional[str] = None
     confidence_score: Optional[int] = Field(None, ge=0, le=100)
-    feedback_score: Optional[int] = Field(None, ge=0, le=100)
-    metadata: Optional[Dict[str, Any]] = None
+    meta_data: Optional[Dict[str, Any]] = None
 
 
 class QuestionInDBBase(QuestionBase):
@@ -120,7 +122,6 @@ class QuestionInDBBase(QuestionBase):
     confidence_score: Optional[int]
     created_at: datetime
     updated_at: datetime
-    feedback_score: Optional[int]
 
     class Config:
         from_attributes = True
@@ -128,36 +129,6 @@ class QuestionInDBBase(QuestionBase):
 
 class Question(QuestionInDBBase):
     pass
-
-
-# RL Model schemas
-class RLModelStateBase(BaseModel):
-    model_name: str
-    version: str
-    state_dict: Dict[str, Any]
-    metrics: Dict[str, Any]
-    metadata: Optional[Dict[str, Any]] = None
-
-
-class RLModelStateCreate(RLModelStateBase):
-    pass
-
-
-class RLModelStateUpdate(BaseModel):
-    state_dict: Optional[Dict[str, Any]] = None
-    metrics: Optional[Dict[str, Any]] = None
-    is_active: Optional[bool] = None
-    metadata: Optional[Dict[str, Any]] = None
-
-
-class RLModelState(RLModelStateBase):
-    id: int
-    created_at: datetime
-    updated_at: datetime
-    is_active: bool
-
-    class Config:
-        from_attributes = True
 
 
 # Token schemas

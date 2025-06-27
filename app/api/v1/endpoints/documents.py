@@ -31,6 +31,8 @@ async def upload_document(
     """
     Upload a new document.
     """
+    print("upload_document called")
+    print(f"file: {file.filename if file else None}, title: {title}, user: {getattr(current_user, 'id', None)}")
     try:
         # Create upload directory if it doesn't exist
         os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
@@ -71,7 +73,9 @@ async def upload_document(
         }
 
     except Exception as e:
-        if os.path.exists(file_path):
+        print("UPLOAD ENDPOINT ERROR:", e)
+        import traceback; traceback.print_exc()
+        if 'file_path' in locals() and os.path.exists(file_path):
             os.remove(file_path)
         raise HTTPException(
             status_code=400,
