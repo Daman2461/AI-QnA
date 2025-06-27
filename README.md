@@ -4,6 +4,10 @@ A modern FastAPI-based backend and responsive frontend for uploading documents, 
 This project is an AI-powered Document Q&A System using FastAPI, SQLAlchemy, HuggingFace embeddings, FAISS, and LangChain with Mistral LLM. It enables users to upload documents and get intelligent, context-aware answers, showcasing advanced backend design and modern NLP integration.
 ---
 
+
+https://github.com/user-attachments/assets/4b6ec588-eade-4865-a3f2-bc4c3b698b94
+
+
 ## Features
 
 - **Document Upload & Processing:** Upload `.txt`, `.pdf`, `.docx`, or `.md` files. Documents are split into chunks, embedded with HuggingFace models, and stored for semantic search.
